@@ -10,6 +10,8 @@ import Cocoa
 
 class ViewController: NSViewController {
 
+    @IBOutlet weak var tableView: NSTableView!
+
     private var fillWindowController: NSWindowController!
     private var keyWindowController: NSWindowController!
 
@@ -30,15 +32,13 @@ class ViewController: NSViewController {
     }
 
     @IBAction func clickLoadImage(_ sender: Any) {
-        // ファイル読み込み（とりあえず配列で受け取れるようにしておく）
         let panel = NSOpenPanel()
         panel.allowsMultipleSelection = true
 
         switch panel.runModal() {
         case .OK:
-            // とりあえず一枚……。
-            urls = [panel.urls[0]]
-            presentImage(url: urls[0])
+            urls = panel.urls
+            tableView.reloadData()
         default: break
         }
     }
@@ -131,3 +131,20 @@ class ViewController: NSViewController {
     }
 }
 
+extension ViewController: NSTableViewDataSource {
+    func numberOfRows(in tableView: NSTableView) -> Int {
+        return urls.count
+    }
+
+    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
+        return urls[row].lastPathComponent
+    }
+}
+
+extension ViewController: NSTableViewDelegate {
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        let row = tableView.selectedRow
+        let url = urls[row]
+        presentImage(url: url)
+    }
+}
