@@ -10,7 +10,7 @@ import Cocoa
 
 class ViewController: NSViewController {
 
-    @IBOutlet weak var tableView: NSTableView!
+    @IBOutlet weak var collectionView: NSCollectionView!
 
     private var fillWindowController: NSWindowController!
     private var keyWindowController: NSWindowController!
@@ -23,6 +23,8 @@ class ViewController: NSViewController {
         let storyboard = NSStoryboard.init(name: "Main", bundle: Bundle.main)
         fillWindowController = (storyboard.instantiateController(withIdentifier: .init(stringLiteral: "Fill")) as! NSWindowController)
         keyWindowController = (storyboard.instantiateController(withIdentifier: .init(stringLiteral: "Key")) as! NSWindowController)
+
+        collectionView.register(NSNib(nibNamed: "MediaItem", bundle: .main), forItemWithIdentifier: NSUserInterfaceItemIdentifier("MediaItem"))
     }
 
     override var representedObject: Any? {
@@ -38,7 +40,7 @@ class ViewController: NSViewController {
         switch panel.runModal() {
         case .OK:
             urls = panel.urls
-            tableView.reloadData()
+            collectionView.reloadData()
         default: break
         }
     }
@@ -141,10 +143,19 @@ extension ViewController: NSTableViewDataSource {
     }
 }
 
-extension ViewController: NSTableViewDelegate {
-    func tableViewSelectionDidChange(_ notification: Notification) {
-        let row = tableView.selectedRow
-        let url = urls[row]
-        presentImage(url: url)
+extension ViewController: NSCollectionViewDataSource {
+    func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
+        return urls.count
     }
+
+    func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
+        let url = urls[indexPath.item]
+        let item = collectionView.makeItem(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "MediaItem"), for: indexPath) as! MediaItem
+
+        item.mediaImage.image = NSImage(contentsOf: url)
+        item.titleLabel.stringValue = url.lastPathComponent
+        return item
+    }
+
+
 }
