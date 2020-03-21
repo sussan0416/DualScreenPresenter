@@ -10,12 +10,12 @@ import Cocoa
 
 class ViewController: NSViewController {
 
-    @IBOutlet weak var tableView: NSTableView!
+    @IBOutlet weak var collectionView: NSCollectionView!
 
     private var fillWindowController: NSWindowController!
     private var keyWindowController: NSWindowController!
 
-    private var urls: [URL] = []
+    private var mediaData: [Media] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -23,6 +23,8 @@ class ViewController: NSViewController {
         let storyboard = NSStoryboard.init(name: "Main", bundle: Bundle.main)
         fillWindowController = (storyboard.instantiateController(withIdentifier: .init(stringLiteral: "Fill")) as! NSWindowController)
         keyWindowController = (storyboard.instantiateController(withIdentifier: .init(stringLiteral: "Key")) as! NSWindowController)
+
+        collectionView.register(NSNib(nibNamed: "MediaItem", bundle: .main), forItemWithIdentifier: NSUserInterfaceItemIdentifier("MediaItem"))
     }
 
     override var representedObject: Any? {
@@ -37,8 +39,10 @@ class ViewController: NSViewController {
 
         switch panel.runModal() {
         case .OK:
-            urls = panel.urls
-            tableView.reloadData()
+            mediaData = panel.urls.map({
+                Media(url: $0, title: $0.lastPathComponent, isProgram: false)
+            })
+            collectionView.reloadData()
         default: break
         }
     }
@@ -65,6 +69,22 @@ class ViewController: NSViewController {
             keyWindowController.showWindow(self)
         default: break
         }
+    }
+
+    @IBAction func clickChangeButton(_ sender: Any) {
+        let indexes = collectionView.selectionIndexes
+        mediaData.enumerated().forEach { (offset: Int, element: Media) in
+            let selected = indexes.contains(offset)
+            mediaData[offset].isProgram = selected
+
+            // 現状1枚の選択にしか対応していないので、これでも問題にはならない
+            if selected {
+                presentImage(url: element.url)
+            }
+        }
+
+        collectionView.deselectAll(nil)
+        collectionView.reloadData()
     }
 
     private func presentImage(url: URL) {
@@ -131,20 +151,17 @@ class ViewController: NSViewController {
     }
 }
 
-extension ViewController: NSTableViewDataSource {
-    func numberOfRows(in tableView: NSTableView) -> Int {
-        return urls.count
+extension ViewController: NSCollectionViewDataSource {
+    func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
+        return mediaData.count
     }
 
-    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        return urls[row].lastPathComponent
+    func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
+        let media = mediaData[indexPath.item]
+        let item = collectionView.makeItem(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "MediaItem"), for: indexPath) as! MediaItem
+        item.media = media
+        return item
     }
-}
 
-extension ViewController: NSTableViewDelegate {
-    func tableViewSelectionDidChange(_ notification: Notification) {
-        let row = tableView.selectedRow
-        let url = urls[row]
-        presentImage(url: url)
-    }
+
 }
