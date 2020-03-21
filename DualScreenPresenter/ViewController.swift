@@ -15,7 +15,7 @@ class ViewController: NSViewController {
     private var fillWindowController: NSWindowController!
     private var keyWindowController: NSWindowController!
 
-    private var urls: [URL] = []
+    private var mediaData: [Media] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,7 +39,9 @@ class ViewController: NSViewController {
 
         switch panel.runModal() {
         case .OK:
-            urls = panel.urls
+            mediaData = panel.urls.map({
+                Media(url: $0, title: $0.lastPathComponent, isProgram: false)
+            })
             collectionView.reloadData()
         default: break
         }
@@ -133,27 +135,15 @@ class ViewController: NSViewController {
     }
 }
 
-extension ViewController: NSTableViewDataSource {
-    func numberOfRows(in tableView: NSTableView) -> Int {
-        return urls.count
-    }
-
-    func tableView(_ tableView: NSTableView, objectValueFor tableColumn: NSTableColumn?, row: Int) -> Any? {
-        return urls[row].lastPathComponent
-    }
-}
-
 extension ViewController: NSCollectionViewDataSource {
     func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
-        return urls.count
+        return mediaData.count
     }
 
     func collectionView(_ collectionView: NSCollectionView, itemForRepresentedObjectAt indexPath: IndexPath) -> NSCollectionViewItem {
-        let url = urls[indexPath.item]
+        let media = mediaData[indexPath.item]
         let item = collectionView.makeItem(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "MediaItem"), for: indexPath) as! MediaItem
-
-        item.mediaImage.image = NSImage(contentsOf: url)
-        item.titleLabel.stringValue = url.lastPathComponent
+        item.media = media
         return item
     }
 
