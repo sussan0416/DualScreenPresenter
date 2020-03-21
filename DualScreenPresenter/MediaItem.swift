@@ -23,6 +23,7 @@ class MediaItem: NSCollectionViewItem {
 
             mediaImage.image = NSImage(contentsOf: m.url)
             titleLabel.stringValue = m.url.lastPathComponent
+            updateBorder()
         }
     }
 
@@ -33,19 +34,23 @@ class MediaItem: NSCollectionViewItem {
 
     override var isSelected: Bool {
         didSet {
-            self.view.layer?.borderWidth = 2
-            
-            if isSelected {
-                self.view.layer?.borderColor = NSColor.green.cgColor
-                return
-            }
-
-            if media?.isProgram ?? false {
-                self.view.layer?.borderColor = NSColor.green.cgColor
-                return
-            }
-
-            self.view.layer?.borderColor = NSColor.clear.cgColor
+            updateBorder()
         }
+    }
+
+    private func updateBorder() {
+        self.view.layer?.borderWidth = 2
+
+        if media?.isProgram ?? false {
+            self.view.layer?.borderColor = NSColor.red.cgColor
+            return
+        }
+
+        if isSelected {
+            self.view.layer?.borderColor = NSColor.green.cgColor
+            return
+        }
+
+        self.view.layer?.borderColor = NSColor.clear.cgColor
     }
 }

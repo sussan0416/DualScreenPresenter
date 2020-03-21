@@ -71,6 +71,22 @@ class ViewController: NSViewController {
         }
     }
 
+    @IBAction func clickChangeButton(_ sender: Any) {
+        let indexes = collectionView.selectionIndexes
+        mediaData.enumerated().forEach { (offset: Int, element: Media) in
+            let selected = indexes.contains(offset)
+            mediaData[offset].isProgram = selected
+
+            // 現状1枚の選択にしか対応していないので、これでも問題にはならない
+            if selected {
+                presentImage(url: element.url)
+            }
+        }
+
+        collectionView.deselectAll(nil)
+        collectionView.reloadData()
+    }
+
     private func presentImage(url: URL) {
         guard let fillWindow = fillWindowController.window,
             let keyWindow = keyWindowController.window else { return }
